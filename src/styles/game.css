@@ -1,0 +1,104 @@
+/* src/styles/game.css */
+
+.game-container {
+  max-width: 384px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  text-align: center; /* ✅ deve esserci */
+}
+
+
+.game-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+
+.game-budget {
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.game-image {
+  width: 100%;
+  height: 12rem;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.game-question {
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
+.game-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.game-button {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: bold;
+  border-radius: 0.5rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.game-button:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.game-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.game-feedback {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.game-retry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.retry-button {
+  width: 100%;
+  max-width: 240px;
+  padding: 0.6rem 1rem;
+  font-weight: bold;
+  color: white;
+  border: none;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+.retry-button.yes {
+  background-color: #16a34a;
+}
+
+.retry-button.no {
+  background-color: #dc2626;
+}
+
+.retry-button:hover {
+  opacity: 0.9;
+}
+
