@@ -2,13 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { fetchProducts } from "../api/productsAPI";
-import contestantsPool from "../data/contestantsPool";
 import "../styles/game.css";
 import ResultOverlay from "./ResultOverlay";
-
-function generateRandomPrice(min = 100, max = 1000) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+import SeatMap from "./SeatMap";
 
 function generateBotBid(actualPrice: number, level: string) {
   const variance = {
@@ -16,20 +12,32 @@ function generateBotBid(actualPrice: number, level: string) {
     medio: 75,
     esperto: 25,
   }[level] || 100;
-
   const error = Math.floor(Math.random() * variance * 2) - variance;
   const bid = actualPrice + error;
-  return Math.max(1, bid); // no bid under 1
+  return Math.max(1, bid);
 }
 
-export default function Game() {
+interface Contestant {
+  name: string;
+  region: string;
+  level: string;
+  gender: string;
+}
+
+interface GameProps {
+  platea: Contestant[];
+}
+
+export default function Game({ platea }: GameProps) {
+  console.log("[DEBUG] Game montato");
+  const [remainingPlatea, setRemainingPlatea] = useState<Contestant[]>(platea);
   const [products, setProducts] = useState<any[]>([]);
   const [product, setProduct] = useState<any | null>(null);
   const [playerBid, setPlayerBid] = useState("");
   const [botBids, setBotBids] = useState<any[]>([]);
   const [winner, setWinner] = useState<any | null>(null);
   const [revealed, setRevealed] = useState(false);
-  const [bots, setBots] = useState<any[]>([]);
+  const [bots, setBots] = useState<Contestant[]>([]);
 
   useEffect(() => {
     fetchProducts().then((data) => {
@@ -44,11 +52,18 @@ export default function Game() {
   }, []);
 
   const pickBots = () => {
-    const shuffled = [...contestantsPool].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 3);
+    const selected = remainingPlatea.slice(0, 3);
     setBots(selected);
     if (process.env.NODE_ENV === "development") {
-      console.log("[DEBUG] Avversari:", selected);
+      console.table(
+        selected.map((bot, i) => ({
+          "#": i + 1,
+          Nome: bot.name,
+          Regione: bot.region,
+          Livello: bot.level,
+          Sesso: bot.gender,
+        }))
+      );
     }
   };
 
@@ -80,6 +95,7 @@ export default function Game() {
     setBotBids(allBids.slice(1));
     setWinner(closest);
     setRevealed(true);
+    setRemainingPlatea((prev) => prev.slice(3));
   };
 
   const nextProduct = () => {
@@ -98,33 +114,46 @@ export default function Game() {
   if (!product) return <p>Caricamento prodotti...</p>;
 
   return (
-    <div className="game-container">
-      <h1 className="game-title">🎭 Spend & Pretend: Contestants’ Row</h1>
-      <p className="game-subtitle">Fai la tua offerta senza sforare, vediamo chi ci va più vicino!</p>
+    <>
+      <div className="platea-overlay">
+        <SeatMap occupiedSeats={remainingPlatea.map((_, i) => i + 1)} />
+      </div>
+      <div className="game-container">
+        <h1 className="game-title">🎭 Spend & Pretend: Contestants’ Row</h1>
+        <p className="game-subtitle">
+          Fai la tua offerta senza sforare, vediamo chi ci va più vicino!
+        </p>
 
-      <img src={product.image} alt={product.title} className="product-image" />
-      <p className="product-title">{product.title}</p>
-
-      {!revealed ? (
-        <form onSubmit={handleSubmit} className="guess-form">
-          <input
-            type="number"
-            value={playerBid}
-            onChange={(e) => setPlayerBid(e.target.value)}
-            placeholder="Il tuo prezzo (€)"
-            className="price-input"
-          />
-          <button type="submit" className="option-button">Invia Offerta</button>
-        </form>
-      ) : (
-        <ResultOverlay
-          actualPrice={product.price}
-          playerBid={Number(playerBid)}
-          botBids={botBids}
-          winner={winner}
-          onClose={nextProduct}
+        <img
+          src={product.image}
+          alt={product.title}
+          className="product-image"
         />
-      )}
-    </div>
+        <p className="product-title">{product.title}</p>
+
+        {!revealed ? (
+          <form onSubmit={handleSubmit} className="guess-form">
+            <input
+              type="number"
+              value={playerBid}
+              onChange={(e) => setPlayerBid(e.target.value)}
+              placeholder="Il tuo prezzo (€)"
+              className="price-input"
+            />
+            <button type="submit" className="option-button">
+              Invia Offerta
+            </button>
+          </form>
+        ) : (
+          <ResultOverlay
+            actualPrice={product.price}
+            playerBid={Number(playerBid)}
+            botBids={botBids}
+            winner={winner}
+            onClose={nextProduct}
+          />
+        )}
+      </div>
+    </>
   );
 }
