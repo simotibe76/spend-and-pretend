@@ -1,0 +1,75 @@
+
+/* src/styles/showbegin.css */
+
+.show-begin {
+  text-align: center;
+  padding: 2rem 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.show-begin h1 {
+  font-size: 2.2rem;
+  font-weight: 900;
+  margin-bottom: 0.5rem;
+  color: #1e3a8a;
+}
+
+.show-begin p {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #4b5563;
+}
+
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.audience-button {
+  padding: 0.6rem 0.8rem;
+  border: none;
+  border-radius: 9999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.audience-button:hover {
+  transform: scale(1.05);
+}
+
+.audience-button.female {
+  background-color: #fbcfe8;
+  color: #831843;
+}
+
+.audience-button.male {
+  background-color: #bfdbfe;
+  color: #1e3a8a;
+}
+
+.audience-button.selected {
+  background-color: #facc15 !important;
+  color: #78350f;
+  font-weight: 700;
+}
+
+.start-button {
+  background-color: #16a34a;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  font-weight: bold;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.start-button:hover {
+  background-color: #15803d;
+}
