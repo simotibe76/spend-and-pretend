@@ -1,10 +1,10 @@
-// src/components/Game.tsx
-
 import React, { useState, useEffect } from "react";
+
 import { fetchProducts } from "../api/productsAPI";
 import "../styles/game.css";
 import ResultOverlay from "./ResultOverlay";
 import SeatMap from "./SeatMap";
+import contestantsPool from "../data/contestantsPool";
 
 function generateBotBid(actualPrice: number, level: string) {
   const variance = {
@@ -24,13 +24,9 @@ interface Contestant {
   gender: string;
 }
 
-interface GameProps {
-  platea: Contestant[];
-}
-
-export default function Game({ platea }: GameProps) {
+export default function Game() {
   console.log("[DEBUG] Game montato");
-  const [remainingPlatea, setRemainingPlatea] = useState<Contestant[]>(platea);
+  const [platea, setPlatea] = useState<Contestant[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [product, setProduct] = useState<any | null>(null);
   const [playerBid, setPlayerBid] = useState("");
@@ -40,19 +36,40 @@ export default function Game({ platea }: GameProps) {
   const [bots, setBots] = useState<Contestant[]>([]);
 
   useEffect(() => {
+    const fullPlatea = buildPlatea();
+    setPlatea(fullPlatea);
+    logPlatea(fullPlatea);
+    pickBots(fullPlatea);
+
     fetchProducts().then((data) => {
       setProducts(data);
       const first = data[Math.floor(Math.random() * data.length)];
       setProduct(first);
-      pickBots();
       if (process.env.NODE_ENV === "development") {
         console.log("[DEBUG] Prezzo reale:", first.price);
       }
     });
   }, []);
 
-  const pickBots = () => {
-    const selected = remainingPlatea.slice(0, 3);
+  const buildPlatea = () => {
+    const shuffled = [...contestantsPool].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 79); // solo 79 bot, il primo slot è del player
+  };
+
+  const logPlatea = (pl: Contestant[]) => {
+    console.table(
+      pl.map((c, i) => ({
+        Posto: i + 2,
+        Nome: c.name,
+        Regione: c.region,
+        Livello: c.level,
+        Genere: c.gender,
+      }))
+    );
+  };
+
+  const pickBots = (fullPlatea: Contestant[]) => {
+    const selected = fullPlatea.slice(0, 3);
     setBots(selected);
     if (process.env.NODE_ENV === "development") {
       console.table(
@@ -95,7 +112,7 @@ export default function Game({ platea }: GameProps) {
     setBotBids(allBids.slice(1));
     setWinner(closest);
     setRevealed(true);
-    setRemainingPlatea((prev) => prev.slice(3));
+    setPlatea((prev) => prev.slice(3));
   };
 
   const nextProduct = () => {
@@ -105,7 +122,7 @@ export default function Game({ platea }: GameProps) {
     setBotBids([]);
     setWinner(null);
     setRevealed(false);
-    pickBots();
+    pickBots(platea);
     if (process.env.NODE_ENV === "development") {
       console.log("[DEBUG] Prezzo reale:", next.price);
     }
@@ -115,9 +132,8 @@ export default function Game({ platea }: GameProps) {
 
   return (
     <>
-      <div className="platea-overlay">
-        <SeatMap occupiedSeats={remainingPlatea.map((_, i) => i + 1)} />
-      </div>
+    
+
       <div className="game-container">
         <h1 className="game-title">🎭 Spend & Pretend: Contestants’ Row</h1>
         <p className="game-subtitle">
@@ -154,6 +170,15 @@ export default function Game({ platea }: GameProps) {
           />
         )}
       </div>
+<div className="platea-overlay-game">
+  <SeatMap
+    occupiedSeats={[0, ...platea.map((_, i) => i + 1)]}
+    botsInGioco={bots.map((b) => b.name)}
+    fullPlatea={[{ name: "Tu", gender: "M" }, ...platea]}  
+  />
+</div>
+
     </>
+
   );
 }

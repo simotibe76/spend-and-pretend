@@ -26,7 +26,13 @@ export default function StartScreen({ onComplete }) {
     sud: ["Molise","Campania","Puglia","Basilicata","Calabria","Sicilia"]
   };
 
-  // Effetto freaky sulle regioni
+  useEffect(() => {
+    if (overlayRef.current) {
+      overlayRef.current.style.top = '0px';
+      lastOverlayTop.current = 0;
+    }
+  }, []);
+
   useEffect(() => {
     freakyInterval.current = setInterval(() => {
       if (!mapRef.current) return;
@@ -45,7 +51,6 @@ export default function StartScreen({ onComplete }) {
     if (title) setHoveredRegion(title);
   };
   const handleMouseOut = () => setHoveredRegion(null);
-
   const handleRegionClick = (e) => {
     const region = e.target.getAttribute('title');
     if (!region) return;
@@ -56,49 +61,80 @@ export default function StartScreen({ onComplete }) {
   const buildPlatea = (region) => {
     const pool = [...contestantsPool];
     const platea = [];
-    // primi 10 dalla regione
-    platea.push(...shuffle(pool.filter(c=>c.region===region)).slice(0,10));
-    // poi gli altri fino a 80
-    const used = new Set(platea.map(c=>c.name));
-    const regions = [...new Set(pool.map(c=>c.region))].filter(r=>r!==region);
+    platea.push(...shuffle(pool.filter(c => c.region === region)).slice(0, 10));
+    const used = new Set(platea.map(c => c.name));
+    const regions = [...new Set(pool.map(c => c.region))].filter(r => r !== region);
     while (platea.length < 80) {
-      const r = regions[Math.floor(Math.random()*regions.length)];
-      const candidates = shuffle(pool.filter(c=>c.region===r && !used.has(c.name)));
-      const take = Math.min(2+Math.floor(Math.random()*3), 80-platea.length);
-      const slice = candidates.slice(0,take);
-      slice.forEach(c=>used.add(c.name));
+      const r = regions[Math.floor(Math.random() * regions.length)];
+      const candidates = shuffle(pool.filter(c => c.region === r && !used.has(c.name)));
+      const take = Math.min(2 + Math.floor(Math.random() * 3), 80 - platea.length);
+      const slice = candidates.slice(0, take);
+      slice.forEach(c => used.add(c.name));
       platea.push(...slice);
     }
     return platea;
   };
-  const shuffle = arr => [...arr].sort(()=>0.5-Math.random());
+  const shuffle = arr => [...arr].sort(() => 0.5 - Math.random());
 
   const animatePlatea = (platea) => {
-    const grouped = platea.reduce((g,b)=>{ (g[b.region]||(g[b.region]=[])).push(b); return g; }, {});
-    const order = [...regionTiers.nord,...regionTiers.centro,...regionTiers.sud]
-      .filter(r=>grouped[r]);
+    lastOverlayTop.current = 0;
+    if (overlayRef.current) overlayRef.current.style.top = '0px';
+    setVisiblePlatea([]);
+
+    const grouped = platea.reduce((g, b) => { (g[b.region] ||= []).push(b); return g; }, {});
+    const order = [...regionTiers.nord, ...regionTiers.centro, ...regionTiers.sud].filter(r => grouped[r]);
+
     let i = 0;
     setAnimating(true);
 
-    const next = () => {
-      if (i>=order.length) {
+    const nextBatch = () => {
+      if (i >= order.length) {
         setAnimating(false);
         console.log("🎬 Platea completa!");
         onComplete(platea);
         return;
       }
-      const reg = order[i], bots = grouped[reg];
-      highlightReg(reg);
-      adjustOverlay(reg);
-      bots.forEach((b,k)=>setTimeout(()=>flyBadge(b), k*200));
-      setTimeout(()=>{
-        unhighlightReg(reg);
-        i++;
-        next();
-      }, 1000 + bots.length*200);
+
+      const batch = order.slice(i, i + 3);
+      const allBots = [];
+      let maxOffset = 0;
+
+      setTimeout(() => {
+        batch.forEach(region => {
+          highlightReg(region);
+          const bots = grouped[region];
+          allBots.push(...bots);
+          const p = mapRef.current?.querySelector(`path[title='${CSS.escape(region)}']`);
+          if (p) {
+            const mr = mapRef.current.getBoundingClientRect();
+            const pr = p.getBoundingClientRect();
+            const offset = pr.top - mr.top - 30;
+            if (offset > maxOffset) maxOffset = offset;
+          }
+        });
+
+        if (overlayRef.current && maxOffset > lastOverlayTop.current) {
+          overlayRef.current.style.top = `${maxOffset}px`;
+          lastOverlayTop.current = maxOffset;
+          console.log(`[DEBUG] Overlay batch a: ${maxOffset}px`);
+        }
+
+        allBots.forEach(bot => {
+          const delay = Math.random() * 200;
+          setTimeout(() => flyBadge(bot), delay);
+        });
+
+        setTimeout(() => {
+          batch.forEach(unhighlightReg);
+          i += 3;
+          nextBatch();
+        }, 1200);
+      }, 100);
     };
-    next();
+
+    nextBatch();
   };
+
   const highlightReg = (r) => {
     const p = mapRef.current?.querySelector(`path[title='${CSS.escape(r)}']`);
     if (p) p.classList.add('highlighted');
@@ -107,40 +143,33 @@ export default function StartScreen({ onComplete }) {
     const p = mapRef.current?.querySelector(`path[title='${CSS.escape(r)}']`);
     if (p) p.classList.remove('highlighted');
   };
-  const adjustOverlay = (r) => {
-    const p = mapRef.current?.querySelector(`path[title='${CSS.escape(r)}']`);
-    const ov = overlayRef.current;
-    if (p && ov) {
-      const mr = mapRef.current.getBoundingClientRect();
-      const pr = p.getBoundingClientRect();
-      const off = pr.top - mr.top - 30;
-      if (off > lastOverlayTop.current) {
-        ov.style.top = `${off}px`;
-        lastOverlayTop.current = off;
-      }
-    }
-  };
+
   const flyBadge = (bot) => {
-    const p = mapRef.current.querySelector(`path[title='${CSS.escape(bot.region)}']`);
-    if (!p) return;
+    const p = mapRef.current?.querySelector(`path[title='${CSS.escape(bot.region)}']`);
+    if (!p || !badgeContainerRef.current || !overlayRef.current) return;
+
     const mr = mapRef.current.getBoundingClientRect();
     const pr = p.getBoundingClientRect();
     const ov = overlayRef.current.getBoundingClientRect();
-    const sx = pr.left - mr.left + pr.width/2;
-    const sy = pr.top - mr.top + pr.height/2;
-    const ty = ov.bottom - mr.top - 20;
+
+    const sx = pr.left - mr.left + pr.width / 2;
+    const sy = pr.top - mr.top + pr.height / 2;
+    const ty = ov.top - mr.top + 20;
     const dy = sy - ty;
+
     const bd = document.createElement('div');
     bd.className = 'bot-badge';
     bd.textContent = bot.name;
     bd.style.left = `${sx}px`;
     bd.style.top = `${sy}px`;
+
     badgeContainerRef.current.append(bd);
     void bd.offsetWidth;
     bd.style.transition = 'transform 1.2s ease, opacity 1.2s ease';
     bd.style.transform = `translate(-50%,-${dy}px)`;
     bd.style.opacity = '0';
-    setTimeout(()=>bd.remove(),1300);
+
+    setTimeout(() => bd.remove(), 1300);
   };
 
   const handleConfirm = () => {
@@ -160,7 +189,7 @@ export default function StartScreen({ onComplete }) {
           <h2>📍 Regione: {selectedRegion}</h2>
           <input
             value={playerName}
-            onChange={e=>setPlayerName(e.target.value)}
+            onChange={e => setPlayerName(e.target.value)}
             placeholder="Il tuo nome"
             className="name-input"
           />
@@ -179,16 +208,15 @@ export default function StartScreen({ onComplete }) {
       >
         <ItalySVG className="w-full h-auto cursor-pointer" />
         <div ref={badgeContainerRef} className="badge-container" />
+        {animating && (
+          <div className="platea-overlay" ref={overlayRef}>
+            <SeatMap occupiedSeats={visiblePlatea.map((_, i) => i + 1)} />
+          </div>
+        )}
       </div>
 
       {hoveredRegion && !selectedRegion && (
         <p className="region-highlight">🧭 {hoveredRegion}</p>
-      )}
-
-      {animating && (
-        <div className="platea-overlay" ref={overlayRef}>
-          <SeatMap occupiedSeats={visiblePlatea.map((_,i)=>i+1)} />
-        </div>
       )}
     </div>
   );

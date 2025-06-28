@@ -71,8 +71,8 @@ path.highlighted {
 
 /* 🧍 Overlay in alto per la platea */
 .platea-overlay {
-  position: absolute;
-  top: 0;
+  position: absolute;    /* fuori dal flow, sul layer più alto */
+  top: 0;                /* parte sempre in cima */
   left: 0;
   right: 0;
   background: rgba(0, 0, 0, 0.85);
@@ -86,7 +86,9 @@ path.highlighted {
   gap: 0.5rem;
   min-height: 120px;
   border-bottom: 4px solid #ffcc00;
+  transition: top 0.6s ease;
 }
+
 
 .platea-member {
   background: #fff;
@@ -135,21 +137,11 @@ path.highlighted {
   padding: 6px 10px;
   border-radius: 20px;
   font-weight: bold;
-  animation: flyAndFade 2.2s ease-in-out forwards;
   z-index: 10;
   pointer-events: none;
 }
 
-@keyframes flyAndFade {
-  0% {
-    opacity: 1;
-    transform: scale(1) translate(-50%, -50%);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.3) translate(-50%, -800px);
-  }
-}
+
 .badge-container {
   position: absolute;
   top: 0;
