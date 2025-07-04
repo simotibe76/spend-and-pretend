@@ -3,16 +3,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ItalySVG from '../assets/italyHigh.svg?react';
 import contestantsPool from '../data/contestantsPool';
-import SeatMap from './SeatMap';
 import '../styles/StartScreen.css';
-import '../styles/SeatMap.css';
 
 export default function StartScreen({ onComplete }) {
   const [hoveredRegion, setHoveredRegion] = useState(null);
   const [selectedRegion, setSelectedRegion] = useState(null);
   const [playerName, setPlayerName] = useState("");
-  const [visiblePlatea, setVisiblePlatea] = useState([]);
   const [animating, setAnimating] = useState(false);
+const [visiblePlatea, setVisiblePlatea] = useState([]);
 
   const mapRef = useRef(null);
   const badgeContainerRef = useRef(null);
@@ -46,11 +44,6 @@ export default function StartScreen({ onComplete }) {
     return () => clearInterval(freakyInterval.current);
   }, []);
 
-  const handleMouseOver = (e) => {
-    const title = e.target.getAttribute('title');
-    if (title) setHoveredRegion(title);
-  };
-  const handleMouseOut = () => setHoveredRegion(null);
   const handleRegionClick = (e) => {
     const region = e.target.getAttribute('title');
     if (!region) return;
@@ -74,50 +67,58 @@ export default function StartScreen({ onComplete }) {
     }
     return platea;
   };
+
   const shuffle = arr => [...arr].sort(() => 0.5 - Math.random());
 
   const animatePlatea = (platea) => {
     lastOverlayTop.current = 0;
     if (overlayRef.current) overlayRef.current.style.top = '0px';
-    setVisiblePlatea([]);
 
-    const grouped = platea.reduce((g, b) => { (g[b.region] ||= []).push(b); return g; }, {});
+    const grouped = platea.reduce((g, b) => {
+      (g[b.region] ||= []).push(b);
+      return g;
+    }, {});
+
     const order = [...regionTiers.nord, ...regionTiers.centro, ...regionTiers.sud].filter(r => grouped[r]);
 
     let i = 0;
     setAnimating(true);
 
     const nextBatch = () => {
-      if (i >= order.length) {
-        setAnimating(false);
-        console.log("🎬 Platea completa!");
-        onComplete(platea);
-        return;
-      }
+if (i >= order.length) {
+  setAnimating(false);
+  console.log("🎬 Platea completa!");
+
+  setTimeout(() => {
+    onComplete(platea);
+  }, 2500); // ⏱️ Aspetta 2.5 secondi prima di passare a Game
+
+  return;
+}
+
 
       const batch = order.slice(i, i + 3);
       const allBots = [];
-      let maxOffset = 0;
 
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         batch.forEach(region => {
-          highlightReg(region);
           const bots = grouped[region];
           allBots.push(...bots);
-          const p = mapRef.current?.querySelector(`path[title='${CSS.escape(region)}']`);
-          if (p) {
-            const mr = mapRef.current.getBoundingClientRect();
-            const pr = p.getBoundingClientRect();
-            const offset = pr.top - mr.top - 30;
-            if (offset > maxOffset) maxOffset = offset;
-          }
         });
 
-        if (overlayRef.current && maxOffset > lastOverlayTop.current) {
-          overlayRef.current.style.top = `${maxOffset}px`;
-          lastOverlayTop.current = maxOffset;
-          console.log(`[DEBUG] Overlay batch a: ${maxOffset}px`);
-        }
+        const tops = batch.map(region => {
+          const p = mapRef.current?.querySelector(`path[title='${CSS.escape(region)}']`);
+          return p ? p.getBoundingClientRect().top : Infinity;
+        });
+
+        const minTop = Math.min(...tops);
+        const mapTop = mapRef.current.getBoundingClientRect().top;
+        const overlayOffset = -60;
+        const newTop = Math.max(0, minTop - mapTop + overlayOffset);
+
+        overlayRef.current.style.top = `${newTop}px`;
+        lastOverlayTop.current = newTop;
+        console.log(`[DEBUG] Overlay base su: ${minTop}px -> overlay top: ${newTop}px`);
 
         allBots.forEach(bot => {
           const delay = Math.random() * 200;
@@ -125,52 +126,48 @@ export default function StartScreen({ onComplete }) {
         });
 
         setTimeout(() => {
-          batch.forEach(unhighlightReg);
           i += 3;
           nextBatch();
-        }, 1200);
-      }, 100);
+        }, 1500);
+      });
     };
 
     nextBatch();
   };
 
-  const highlightReg = (r) => {
-    const p = mapRef.current?.querySelector(`path[title='${CSS.escape(r)}']`);
-    if (p) p.classList.add('highlighted');
-  };
-  const unhighlightReg = (r) => {
-    const p = mapRef.current?.querySelector(`path[title='${CSS.escape(r)}']`);
-    if (p) p.classList.remove('highlighted');
-  };
+const flyBadge = (bot, index) => {
+  const p = mapRef.current?.querySelector(`path[title='${CSS.escape(bot.region)}']`);
+  if (!p || !badgeContainerRef.current || !overlayRef.current) return;
 
-  const flyBadge = (bot) => {
-    const p = mapRef.current?.querySelector(`path[title='${CSS.escape(bot.region)}']`);
-    if (!p || !badgeContainerRef.current || !overlayRef.current) return;
+  const mr = mapRef.current.getBoundingClientRect();
+  const pr = p.getBoundingClientRect();
+  const ov = overlayRef.current.getBoundingClientRect();
 
-    const mr = mapRef.current.getBoundingClientRect();
-    const pr = p.getBoundingClientRect();
-    const ov = overlayRef.current.getBoundingClientRect();
+  const sx = pr.left - mr.left + pr.width / 2;
+  const sy = pr.top - mr.top + pr.height / 2;
+  const ty = ov.top - mr.top + ov.height / 2;
+  const dy = sy - ty;
 
-    const sx = pr.left - mr.left + pr.width / 2;
-    const sy = pr.top - mr.top + pr.height / 2;
-    const ty = ov.top - mr.top + 20;
-    const dy = sy - ty;
+  const bd = document.createElement('div');
+  bd.className = 'bot-badge';
+  bd.textContent = bot.name;
+  bd.style.left = `${sx}px`;
+  bd.style.top = `${sy}px`;
 
-    const bd = document.createElement('div');
-    bd.className = 'bot-badge';
-    bd.textContent = bot.name;
-    bd.style.left = `${sx}px`;
-    bd.style.top = `${sy}px`;
+  badgeContainerRef.current.append(bd);
+  void bd.offsetWidth;
 
-    badgeContainerRef.current.append(bd);
-    void bd.offsetWidth;
-    bd.style.transition = 'transform 1.2s ease, opacity 1.2s ease';
-    bd.style.transform = `translate(-50%,-${dy}px)`;
-    bd.style.opacity = '0';
+  bd.style.transition = 'transform 1.2s ease, opacity 1.2s ease';
+  bd.style.transform = `translate(-50%,-${dy}px)`;
+  bd.style.opacity = '0';
 
-    setTimeout(() => bd.remove(), 1300);
-  };
+  setTimeout(() => {
+    bd.remove();
+    // 👇 dopo il volo, aggiungilo alla platea visiva
+    setVisiblePlatea(prev => [...prev, bot]);
+  }, 1300);
+};
+
 
   const handleConfirm = () => {
     if (!playerName.trim()) return;
@@ -179,45 +176,48 @@ export default function StartScreen({ onComplete }) {
     animatePlatea(plateaArr);
   };
 
-  return (
-    <div className="start-screen">
-      <h1 className="start-title">🇮🇹 Spend & Pretend</h1>
-
-      {!selectedRegion && <p className="hover-label">Seleziona la tua regione!</p>}
-      {selectedRegion && !animating && (
-        <div className="identity-form">
-          <h2>📍 Regione: {selectedRegion}</h2>
-          <input
-            value={playerName}
-            onChange={e => setPlayerName(e.target.value)}
-            placeholder="Il tuo nome"
-            className="name-input"
-          />
-          <button onClick={handleConfirm} disabled={!playerName.trim()}>
-            Invita partecipanti
-          </button>
-        </div>
-      )}
-
-      <div
-        className="map-wrapper"
-        ref={mapRef}
-        onMouseOver={handleMouseOver}
-        onMouseOut={handleMouseOut}
-        onClick={handleRegionClick}
-      >
-        <ItalySVG className="w-full h-auto cursor-pointer" />
-        <div ref={badgeContainerRef} className="badge-container" />
-        {animating && (
-          <div className="platea-overlay" ref={overlayRef}>
-            <SeatMap occupiedSeats={visiblePlatea.map((_, i) => i + 1)} />
-          </div>
-        )}
-      </div>
-
-      {hoveredRegion && !selectedRegion && (
-        <p className="region-highlight">🧭 {hoveredRegion}</p>
-      )}
+return (
+  <div className="start-screen">
+    {/* Overlay azzurro con icone maschi/femmine */}
+    <div className="platea-overlay" ref={overlayRef}>
+      {visiblePlatea.map((bot, i) => (
+        <img
+          key={i}
+          src={bot.gender === "F" ? "/src/assets/female.png" : "/src/assets/male.png"}
+          className="seat-icon"
+          alt={bot.name}
+          title={bot.name}
+        />
+      ))}
     </div>
-  );
+
+    <h1 className="start-title">🇮🇹 Spend & Pretend</h1>
+
+    {!selectedRegion && <p className="hover-label">Seleziona la tua regione!</p>}
+    {selectedRegion && !animating && (
+      <div className="identity-form">
+        <h2>📍 Regione: {selectedRegion}</h2>
+        <input
+          value={playerName}
+          onChange={e => setPlayerName(e.target.value)}
+          placeholder="Il tuo nome"
+          className="name-input"
+        />
+        <button onClick={handleConfirm} disabled={!playerName.trim()}>
+          Invita partecipanti
+        </button>
+      </div>
+    )}
+
+    <div
+      className="map-wrapper"
+      ref={mapRef}
+      onClick={handleRegionClick}
+    >
+      <ItalySVG className="w-full h-auto cursor-pointer" />
+      <div ref={badgeContainerRef} className="badge-container" />
+    </div>
+  </div>
+);
+
 }

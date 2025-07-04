@@ -1,0 +1,40 @@
+.studio-platea-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #111;
+  border-top: 4px solid #ffcc00;
+}
+
+.studio-platea {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 8px;
+  max-width: 100%;
+}
+
+.studio-seat {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background-color: #666;
+  transition: background-color 0.3s ease;
+}
+
+.studio-seat.occupied {
+  background-color: #22c55e; /* verde */
+}
+
+@media (max-width: 600px) {
+  .studio-platea {
+    grid-template-columns: repeat(10, 1fr); /* 2 righe da 40 posti */
+    gap: 6px;
+  }
+
+  .studio-seat {
+    width: 16px;
+    height: 16px;
+  }
+}
+

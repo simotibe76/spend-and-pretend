@@ -37,82 +37,83 @@
   color: #222;
 }
 
+/* 🗺️ Contenitore mappa */
 .map-wrapper {
+  position: relative;
   width: 100%;
-  max-width: 100%;
   height: auto;
-  display: block;
-  position:relative;
+  min-height: 600px;
 }
-
 .map-wrapper svg {
   width: 100%;
   height: auto;
   cursor: pointer;
 }
 
-/* 🎯 Regioni standard */
+/* 🌈 Regioni */
 path {
   fill: #007bff;
   transition: fill 1s ease-in-out;
 }
-
-/* 🎯 Regione "magica" evidenziata */
 path.freaky {
   fill: orange !important;
 }
-
-/* ✨ Regione del giocatore in evidenza */
 path.highlighted {
   fill: gold !important;
   stroke: #000;
   stroke-width: 1.5;
 }
 
-/* 🧍 Overlay in alto per la platea */
+/* 🟦 Overlay rettangolare blu */
 .platea-overlay {
-  position: absolute;    /* fuori dal flow, sul layer più alto */
-  top: 0;                /* parte sempre in cima */
+  position: absolute;
+  top: 0;
   left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.85);
-  color: #fff;
-  padding: 1rem;
   z-index: 10;
+  background: rgba(0, 0, 0, 0.05); /* più opaco */
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 0.5rem;
-  min-height: 120px;
-  border-bottom: 4px solid #ffcc00;
-  transition: top 0.6s ease;
+  transition: top 0.4s ease;
+  padding: 0.5rem;
+  max-width: 100%;
+
+  width: 100%; /* aggiunto */
+  box-sizing: border-box;
 }
 
 
-.platea-member {
-  background: #fff;
+
+/* ✈️ Badge volanti */
+.bot-badge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.9); /* bianco quasi pieno */
   color: #333;
-  padding: 0.5rem 1rem;
-  border-radius: 1rem;
+  padding: 4px 8px;
+  border-radius: 12px;
   font-weight: bold;
-  font-size: 0.85rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  animation: fadeInUp 0.4s ease-out;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+  z-index: 11;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
-@keyframes fadeInUp {
-  from {
-    transform: translateY(150px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+
+/* 🔲 Contenitore badge */
+.badge-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 8;
 }
 
-/* 📱 Mobile optimization */
+/* 📱 Responsive */
 @media (max-width: 480px) {
   .start-title {
     font-size: 1.8rem;
@@ -125,29 +126,24 @@ path.highlighted {
     font-size: 1rem;
   }
 
-  .map-wrapper {
-    max-width: 90vw;
+
+
+  .platea-overlay {
+    min-width: 240px;
+    min-height: 100px;
+    padding: 1rem;
   }
 }
-.bot-badge {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  background: white;
-  color: black;
-  padding: 6px 10px;
-  border-radius: 20px;
-  font-weight: bold;
-  z-index: 10;
-  pointer-events: none;
+
+.seat-icon {
+  width: 24px;
+  height: 24px;
+  margin: 4px;
+  padding: 4px;
+  background-color: rgba(255, 255, 255, 0.8); /* sfondo bianco semi-trasparente */
+  border-radius: 50%;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.7); /* ombra netta */
+  transition: transform 0.3s ease;
 }
 
 
-.badge-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 5;
-}

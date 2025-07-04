@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-
 import { fetchProducts } from "../api/productsAPI";
 import "../styles/game.css";
 import ResultOverlay from "./ResultOverlay";
-import SeatMap from "./SeatMap";
+import StudioPlatea from "./StudioPlatea"; // nuovo componente
 import contestantsPool from "../data/contestantsPool";
 
 function generateBotBid(actualPrice: number, level: string) {
@@ -25,7 +24,6 @@ interface Contestant {
 }
 
 export default function Game() {
-  console.log("[DEBUG] Game montato");
   const [platea, setPlatea] = useState<Contestant[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [product, setProduct] = useState<any | null>(null);
@@ -38,50 +36,24 @@ export default function Game() {
   useEffect(() => {
     const fullPlatea = buildPlatea();
     setPlatea(fullPlatea);
-    logPlatea(fullPlatea);
     pickBots(fullPlatea);
 
     fetchProducts().then((data) => {
       setProducts(data);
       const first = data[Math.floor(Math.random() * data.length)];
       setProduct(first);
-      if (process.env.NODE_ENV === "development") {
-        console.log("[DEBUG] Prezzo reale:", first.price);
-      }
+      console.log("[DEBUG] Prezzo reale:", first.price);
     });
   }, []);
 
   const buildPlatea = () => {
     const shuffled = [...contestantsPool].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 79); // solo 79 bot, il primo slot è del player
-  };
-
-  const logPlatea = (pl: Contestant[]) => {
-    console.table(
-      pl.map((c, i) => ({
-        Posto: i + 2,
-        Nome: c.name,
-        Regione: c.region,
-        Livello: c.level,
-        Genere: c.gender,
-      }))
-    );
+    return shuffled.slice(0, 79); // primo slot riservato al player
   };
 
   const pickBots = (fullPlatea: Contestant[]) => {
     const selected = fullPlatea.slice(0, 3);
     setBots(selected);
-    if (process.env.NODE_ENV === "development") {
-      console.table(
-        selected.map((bot, i) => ({
-          "#": i + 1,
-          Nome: bot.name,
-          Regione: bot.region,
-          Livello: bot.level,
-          Sesso: bot.gender,
-        }))
-      );
-    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -112,7 +84,7 @@ export default function Game() {
     setBotBids(allBids.slice(1));
     setWinner(closest);
     setRevealed(true);
-    setPlatea((prev) => prev.slice(3));
+    setPlatea((prev) => prev.slice(3)); // togliamo i 3 bot usati
   };
 
   const nextProduct = () => {
@@ -123,17 +95,13 @@ export default function Game() {
     setWinner(null);
     setRevealed(false);
     pickBots(platea);
-    if (process.env.NODE_ENV === "development") {
-      console.log("[DEBUG] Prezzo reale:", next.price);
-    }
+    console.log("[DEBUG] Prezzo reale:", next.price);
   };
 
   if (!product) return <p>Caricamento prodotti...</p>;
 
   return (
     <>
-    
-
       <div className="game-container">
         <h1 className="game-title">🎭 Spend & Pretend: Contestants’ Row</h1>
         <p className="game-subtitle">
@@ -170,15 +138,10 @@ export default function Game() {
           />
         )}
       </div>
-<div className="platea-overlay-game">
-  <SeatMap
-    occupiedSeats={[0, ...platea.map((_, i) => i + 1)]}
-    botsInGioco={bots.map((b) => b.name)}
-    fullPlatea={[{ name: "Tu", gender: "M" }, ...platea]}  
-  />
-</div>
 
+      <StudioPlatea
+        occupiedSeats={[0, ...platea.map((_, i) => i + 1)]}
+      />
     </>
-
   );
 }

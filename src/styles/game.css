@@ -96,7 +96,7 @@
   border: 2px solid #92400e;
 }
 .platea-overlay-game {
-  position: relative; /* NON absolute */
+  position: relative;
   background: rgba(0, 0, 0, 0.85);
   color: #fff;
   padding: 1rem;
@@ -110,5 +110,6 @@
   border-top: 4px solid #ffcc00;
   margin-top: 2rem;
 }
+
 
 

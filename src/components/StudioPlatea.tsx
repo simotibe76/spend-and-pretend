@@ -1,18 +1,19 @@
-// src/components/SeatMap.tsx
 
 import React from "react";
-import "../styles/SeatMap.css";
 
+import "../styles/StudioPlatea.css";
 interface SeatMapProps {
-  occupiedSeats: number[]; // array di indici occupati da 1 a 80
+  occupiedSeats: number[];
+  botsInGioco?: string[];
+  fullPlatea?: { name: string; gender: string }[];
 }
 
-const SeatMap: React.FC<SeatMapProps> = ({ occupiedSeats }) => {
+const StudioPlatea: React.FC<SeatMapProps> = ({ occupiedSeats }) => {
   const rows = 4;
   const cols = 20;
-  const seatSize = 16;
-  const seatGap = 6; // era 8
-  const occupiedScale = 1.05;
+  const seatSize = 18;
+  const seatGap = 6;
+
   const seats = Array.from({ length: rows * cols }, (_, i) => {
     const row = Math.floor(i / cols);
     const col = i % cols;
@@ -39,15 +40,14 @@ const SeatMap: React.FC<SeatMapProps> = ({ occupiedSeats }) => {
 
   return (
     <svg
-  className="seat-map"
-  viewBox={`0 0 ${width} ${height}`}
-  preserveAspectRatio="xMidYMid meet"
-  width="100%"
-  height="auto"
+      className="seat-map studio-seat-map"
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
     >
       {seats}
     </svg>
   );
 };
 
-export default SeatMap;
+export default StudioPlatea;
