@@ -1,9 +1,12 @@
 .game-container {
-  text-align: center;
-  padding: 1rem;
-  max-width: 400px;
+  max-width: 600px; /* deve combaciare con l’overlay */
   margin: 0 auto;
+  padding-bottom: 200px; /* spazio per la platea in basso */
+  position: relative;
 }
+
+
+
 
 .game-title {
   font-size: 1.8rem;
@@ -95,20 +98,12 @@
   background-color: #f59e0b; /* arancio acceso */
   border: 2px solid #92400e;
 }
-.platea-overlay-game {
+
+.game-outer-wrapper {
   position: relative;
-  background: rgba(0, 0, 0, 0.85);
-  color: #fff;
-  padding: 1rem;
-  z-index: 10;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 120px;
-  border-top: 4px solid #ffcc00;
-  margin-top: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: 200px; /* spazio per la platea */
 }
 
 

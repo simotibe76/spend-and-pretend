@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { fetchProducts } from "../api/productsAPI";
 import "../styles/game.css";
 import ResultOverlay from "./ResultOverlay";
-import StudioPlatea from "./StudioPlatea"; // nuovo componente
-import contestantsPool from "../data/contestantsPool";
+import StudioPlatea from "./StudioPlatea";
 
 function generateBotBid(actualPrice: number, level: string) {
   const variance = {
@@ -23,8 +22,11 @@ interface Contestant {
   gender: string;
 }
 
-export default function Game() {
-  const [platea, setPlatea] = useState<Contestant[]>([]);
+interface GameProps {
+  platea: Contestant[];
+}
+
+export default function Game({ platea }: GameProps) {
   const [products, setProducts] = useState<any[]>([]);
   const [product, setProduct] = useState<any | null>(null);
   const [playerBid, setPlayerBid] = useState("");
@@ -34,9 +36,7 @@ export default function Game() {
   const [bots, setBots] = useState<Contestant[]>([]);
 
   useEffect(() => {
-    const fullPlatea = buildPlatea();
-    setPlatea(fullPlatea);
-    pickBots(fullPlatea);
+    pickBots(platea);
 
     fetchProducts().then((data) => {
       setProducts(data);
@@ -45,11 +45,6 @@ export default function Game() {
       console.log("[DEBUG] Prezzo reale:", first.price);
     });
   }, []);
-
-  const buildPlatea = () => {
-    const shuffled = [...contestantsPool].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 79); // primo slot riservato al player
-  };
 
   const pickBots = (fullPlatea: Contestant[]) => {
     const selected = fullPlatea.slice(0, 3);
@@ -84,7 +79,6 @@ export default function Game() {
     setBotBids(allBids.slice(1));
     setWinner(closest);
     setRevealed(true);
-    setPlatea((prev) => prev.slice(3)); // togliamo i 3 bot usati
   };
 
   const nextProduct = () => {
@@ -100,48 +94,46 @@ export default function Game() {
 
   if (!product) return <p>Caricamento prodotti...</p>;
 
-  return (
-    <>
-      <div className="game-container">
-        <h1 className="game-title">🎭 Spend & Pretend: Contestants’ Row</h1>
-        <p className="game-subtitle">
-          Fai la tua offerta senza sforare, vediamo chi ci va più vicino!
-        </p>
+return (
+  <div className="game-container">
+    <h1 className="game-title">🎭 Spend & Pretend: Contestants’ Row</h1>
+    <p className="game-subtitle">
+      Fai la tua offerta senza sforare, vediamo chi ci va più vicino!
+    </p>
 
-        <img
-          src={product.image}
-          alt={product.title}
-          className="product-image"
+    <img
+      src={product.image}
+      alt={product.title}
+      className="product-image"
+    />
+    <p className="product-title">{product.title}</p>
+
+    {!revealed ? (
+      <form onSubmit={handleSubmit} className="guess-form">
+        <input
+          type="number"
+          value={playerBid}
+          onChange={(e) => setPlayerBid(e.target.value)}
+          placeholder="Il tuo prezzo (€)"
+          className="price-input"
         />
-        <p className="product-title">{product.title}</p>
-
-        {!revealed ? (
-          <form onSubmit={handleSubmit} className="guess-form">
-            <input
-              type="number"
-              value={playerBid}
-              onChange={(e) => setPlayerBid(e.target.value)}
-              placeholder="Il tuo prezzo (€)"
-              className="price-input"
-            />
-            <button type="submit" className="option-button">
-              Invia Offerta
-            </button>
-          </form>
-        ) : (
-          <ResultOverlay
-            actualPrice={product.price}
-            playerBid={Number(playerBid)}
-            botBids={botBids}
-            winner={winner}
-            onClose={nextProduct}
-          />
-        )}
-      </div>
-
-      <StudioPlatea
-        occupiedSeats={[0, ...platea.map((_, i) => i + 1)]}
+        <button type="submit" className="option-button">
+          Invia Offerta
+        </button>
+      </form>
+    ) : (
+      <ResultOverlay
+        actualPrice={product.price}
+        playerBid={Number(playerBid)}
+        botBids={botBids}
+        winner={winner}
+        onClose={nextProduct}
       />
-    </>
-  );
+    )}
+
+    {/* 🎯 Platea sotto il pulsante */}
+    <StudioPlatea bots={platea} />
+  </div>
+);
+
 }

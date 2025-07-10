@@ -135,15 +135,17 @@ path.highlighted {
   }
 }
 
-.seat-icon {
+/* Cambiamo da .seat-icon a .start-seat-icon */
+.start-seat-icon {
   width: 24px;
   height: 24px;
   margin: 4px;
   padding: 4px;
-  background-color: rgba(255, 255, 255, 0.8); /* sfondo bianco semi-trasparente */
+  background-color: rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.7); /* ombra netta */
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.7);
   transition: transform 0.3s ease;
 }
+
 
 

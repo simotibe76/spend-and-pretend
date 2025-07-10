@@ -181,13 +181,14 @@ return (
     {/* Overlay azzurro con icone maschi/femmine */}
     <div className="platea-overlay" ref={overlayRef}>
       {visiblePlatea.map((bot, i) => (
-        <img
-          key={i}
-          src={bot.gender === "F" ? "/src/assets/female.png" : "/src/assets/male.png"}
-          className="seat-icon"
-          alt={bot.name}
-          title={bot.name}
-        />
+<img
+  key={i}
+  src={bot.gender === "F" ? "/src/assets/female.png" : "/src/assets/male.png"}
+  className="start-seat-icon"
+  alt={bot.name}
+  title={bot.name}
+/>
+
       ))}
     </div>
 

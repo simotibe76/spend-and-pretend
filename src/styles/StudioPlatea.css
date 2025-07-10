@@ -1,17 +1,29 @@
 .studio-platea-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 1rem;
+  background: rgba(76, 175, 81, 0.85);
   display: flex;
   justify-content: center;
-  margin-top: 2rem;
-  padding: 1rem;
-  background-color: #111;
+  align-items: center;
   border-top: 4px solid #ffcc00;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+  width: 100%;
 }
 
 .studio-platea {
   display: grid;
   grid-template-columns: repeat(20, 1fr);
-  gap: 8px;
+  gap: 6px;
+  width: 100%;
   max-width: 100%;
+  justify-content: center;
+  align-items: center;
 }
 
 .studio-seat {
@@ -20,15 +32,16 @@
   border-radius: 4px;
   background-color: #666;
   transition: background-color 0.3s ease;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .studio-seat.occupied {
-  background-color: #22c55e; /* verde */
+  background-color: #22c55e;
 }
 
 @media (max-width: 600px) {
   .studio-platea {
-    grid-template-columns: repeat(10, 1fr); /* 2 righe da 40 posti */
+    grid-template-columns: repeat(10, 1fr);
     gap: 6px;
   }
 
@@ -37,4 +50,60 @@
     height: 16px;
   }
 }
+.studio-overlay {
+  margin-top: 2rem;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 1rem 1rem;
+  border-top: 4px solid #ffcc00;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
 
+
+
+
+
+
+.seat-wrapper {
+  position: relative;
+}
+.seat-icon {
+  width: 28px;
+  height: 28px;
+  margin: 3px;
+  padding: 3px;
+  background-color: rgba(255, 255, 255, 0.9); /* più visibile */
+  border-radius: 50%;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
+  transition: transform 0.2s ease;
+}
+.seat-icon:hover {
+  transform: scale(1.1);
+}
+
+.seat-tooltip {
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 20;
+}
+
+.seat-wrapper:hover .seat-tooltip {
+  opacity: 1;
+}
